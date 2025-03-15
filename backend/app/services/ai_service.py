@@ -19,11 +19,10 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 def get_gemini_model():
     """Get the Gemini Pro model for text generation."""
-    return genai.GenerativeModel('gemini-2.0-flash-lite')
+    return genai.GenerativeModel('gemini-2.0-flash-thinking-exp-01-21')
 
 
 def clean_json_string(json_text: str) -> str:
-    """Clean a JSON string from a model response."""
     if "```json" in json_text:
         json_text = json_text.split("```json")[1].split("```")[0].strip()
     elif "```" in json_text:
@@ -32,7 +31,54 @@ def clean_json_string(json_text: str) -> str:
     # Remove any other markdown formatting or stray characters
     json_text = json_text.strip()
     
-    return json_text
+    try:
+        json.loads(json_text)
+        return json_text
+    except json.JSONDecodeError as e:
+        error_position = e.pos
+        
+        if "Unterminated string" in str(e):
+            lines = json_text.split('\n')
+            fixed_lines = []
+            fixing = False
+            quote_char = None
+            
+            for line in lines:
+                if not fixing and ('"' in line or "'" in line) and line.count('"') % 2 != 0:
+                    fixing = True
+                    quote_char = '"' if line.count('"') % 2 != 0 else "'"
+                    fixed_lines.append(line + quote_char)  # Add closing quote
+                elif fixing:
+                    fixing = False
+                    fixed_lines.append(quote_char + line)  # Add opening quote
+                else:
+                    fixed_lines.append(line)
+            
+            json_text = '\n'.join(fixed_lines)
+        
+        try:
+            json.loads(json_text)
+            return json_text
+        except:
+            in_string = False
+            quote_char = None
+            result = []
+            
+            for char in json_text:
+                if char in ['"', "'"]:
+                    if not in_string:
+                        in_string = True
+                        quote_char = char
+                    elif char == quote_char:
+                        in_string = False
+                        quote_char = None
+                
+                if in_string and char == '\n':
+                    result.append(' ')
+                else:
+                    result.append(char)
+            
+            return ''.join(result)
 
 @retry(exceptions = Exception, tries =2,  delay=2, backoff=2)
 def extract_feature_keywords(feature_description: str) -> List[str]:
@@ -85,7 +131,6 @@ def parse_repo_content(repo_content: str) -> Dict[str, str]:
     lines = repo_content.split('\n')
     i = 0
     
-    # Skip past directory structure section
     while i < len(lines) and not lines[i].startswith("File:"):
         i += 1
     
@@ -93,30 +138,24 @@ def parse_repo_content(repo_content: str) -> Dict[str, str]:
         line = lines[i]
         
         if line.startswith("File:"):
-            # Save previous file if exists
             if current_file:
                 files[current_file] = '\n'.join(current_content)
                 current_content = []
             
-            # Extract new file path
             current_file = line.replace("File:", "").strip()
             i += 1
             
-            # Skip the separator line
             if i < len(lines) and lines[i].startswith("====="):
                 i += 1
         elif line.startswith("=====") and i+1 < len(lines) and lines[i+1].startswith("File:"):
-            # Save the current file and start a new one
             if current_file:
                 files[current_file] = '\n'.join(current_content)
                 current_content = []
             i += 1
         else:
-            # Add line to current file content
             current_content.append(line)
             i += 1
             
-    # Add the last file
     if current_file:
         files[current_file] = '\n'.join(current_content)
         
@@ -129,7 +168,6 @@ async def analyze_file_relevance(file_path: str, file_content: str, feature_desc
     """
     model = get_gemini_model()
     
-    # Limit content size to avoid token limits
     max_content_length = 7000000
     content_preview = file_content[:max_content_length] + "\n... (content truncated)" if len(file_content) > max_content_length else file_content
 
@@ -162,11 +200,9 @@ async def analyze_file_relevance(file_path: str, file_content: str, feature_desc
         result_text = clean_json_string(response.text)
         result = json.loads(result_text)
         
-        # Ensure scores are within bounds
         relevance_score = max(0, min(1, result.get("relevance_score", 0)))
         importance = max(1, min(10, result.get("importance", 1)))
         
-        # Only consider files with good semantic relevance
         if relevance_score >= 0.5:
             return FileInfo(
                 path=file_path,
@@ -189,19 +225,16 @@ async def generate_implementation_plan(
     """
     model = get_gemini_model()
     
-    # Sort by importance
     relevant_files.sort(key=lambda x: x.importance, reverse=True)
     
-    # Use top files for plan generation
     top_files = relevant_files[:10]
-    
-    # Prepare files info for plan generation
+
     files_info = ""
     for i, file in enumerate(top_files, 1):
         files_info += f"File {i}: {file.path}\n"
         files_info += f"Importance: {file.importance}/10\n"
         files_info += f"Reason: {file.reason}\n\n"
-        if i <= 5:  # Include content previews only for the top 5 files
+        if i <= 5:  
             files_info += f"Preview:\n```\n{file.content_preview[:1000]}...\n```\n\n"
     
     prompt = f"""
@@ -234,6 +267,8 @@ async def generate_implementation_plan(
     }}
     
     Be specific and practical. Focus on concrete steps a developer would take to implement this feature.
+    
+    IMPORTANT: Ensure all JSON fields are properly escaped, especially code snippets containing quotes.
     """
     
     try:
@@ -241,9 +276,48 @@ async def generate_implementation_plan(
         
         # Extract JSON from the response
         json_text = clean_json_string(response.text.strip())
-        plan = json.loads(json_text)
         
-        # Validate and ensure all required fields exist
+        try:
+            plan = json.loads(json_text)
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error: {e}")
+            logger.error(f"JSON text causing error: {json_text[:500]}...")
+            
+            fallback_plan = {
+                "feature_summary": f"Implementation plan for {feature_description}",
+                "setup_instructions": [],
+                "implementation_steps": [],
+                "potential_challenges": []
+            }
+            
+            if '"feature_summary"' in json_text:
+                try:
+                    summary_start = json_text.find('"feature_summary"')
+                    summary_content_start = json_text.find(':', summary_start) + 1
+                    summary_content_end = json_text.find('",', summary_content_start)
+                    if summary_content_end > summary_content_start:
+                        fallback_plan["feature_summary"] = json_text[summary_content_start:summary_content_end].strip(' "')
+                except:
+                    pass
+            
+            for i, file in enumerate(top_files[:5], 1):
+                fallback_plan["implementation_steps"].append({
+                    "step_number": i,
+                    "description": f"Review and modify {file.path}",
+                    "file_path": file.path,
+                    "code_snippet": "# Implement feature here"
+                })
+                
+            fallback_plan["setup_instructions"].append({
+                "step_number": 1,
+                "description": "Clone the repository",
+                "code": f"git clone {repo_name}.git"
+            })
+                
+            fallback_plan["potential_challenges"].append("Response formatting issues encountered during analysis")
+            
+            plan = fallback_plan
+        
         if "feature_summary" not in plan:
             plan["feature_summary"] = f"Implementation plan for {feature_description}"
             
@@ -258,24 +332,46 @@ async def generate_implementation_plan(
                     "step_number": 1, 
                     "description": f"Review {top_files[0].path if top_files else 'relevant files'}",
                     "file_path": top_files[0].path if top_files else None,
-                    "code_snippet": None
+                    "code_snippet": "# Review this file for implementation details"
                 }
             ]
             
         if "potential_challenges" not in plan:
             plan["potential_challenges"] = ["Implementation may require additional context"]
         
-        # Convert dictionaries to proper objects
-        setup_steps = [SetupStep(**step) for step in plan["setup_instructions"]]
+        setup_steps = []
+        for step in plan["setup_instructions"]:
+            try:
+                setup_steps.append(SetupStep(**step))
+            except Exception as step_error:
+                logger.error(f"Error processing setup step: {step_error}")
+                setup_steps.append(SetupStep(
+                    step_number=len(setup_steps) + 1,
+                    description=str(step.get("description", "Setup step")),
+                    code=str(step.get("code", "# Code here"))
+                ))
         
-        # Ensure implementation steps have all required fields
         implementation_steps = []
         for step in plan["implementation_steps"]:
-            if "step_number" not in step:
-                step["step_number"] = len(implementation_steps) + 1
-            if "description" not in step:
-                step["description"] = "Implementation step"
-            implementation_steps.append(ImplementationStep(**step))
+            try:
+                if "step_number" not in step:
+                    step["step_number"] = len(implementation_steps) + 1
+                if "description" not in step:
+                    step["description"] = "Implementation step"
+                if "file_path" not in step or step["file_path"] is None:
+                    step["file_path"] = top_files[0].path if top_files else "main.py"
+                if "code_snippet" not in step or step["code_snippet"] is None:
+                    step["code_snippet"] = "# Implementation code here"
+                    
+                implementation_steps.append(ImplementationStep(**step))
+            except Exception as step_error:
+                logger.error(f"Error processing implementation step: {step_error}")
+                implementation_steps.append(ImplementationStep(
+                    step_number=len(implementation_steps) + 1,
+                    description=str(step.get("description", "Implementation step")),
+                    file_path=str(step.get("file_path", top_files[0].path if top_files else "main.py")),
+                    code_snippet=str(step.get("code_snippet", "# Code here"))
+                ))
         
         return {
             "feature_summary": plan["feature_summary"],
@@ -285,7 +381,6 @@ async def generate_implementation_plan(
         }
     except Exception as e:
         logger.error(f"Error generating implementation plan: {e}", exc_info=True)
-        # Return a fallback plan
         return {
             "feature_summary": f"Implementation plan for {feature_description}",
             "setup_instructions": [
@@ -315,36 +410,29 @@ async def analyze_repository(repo_content: str, repo_url: str, feature_descripti
         RepoAnalysisResponse: Analysis results and implementation plan
     """
     try:
-        # Extract repository name from URL
         repo_parts = repo_url.rstrip('/').split('/')
         repo_name = '/'.join(repo_parts[-2:])
         
-        # Parse repository content into individual files
         files = parse_repo_content(repo_content)
         
-        # Extract keywords from feature description
         keywords = extract_feature_keywords(feature_description)
         logger.info(f"Extracted keywords: {keywords}")
         
-        # Create tasks for analyzing file relevance
         analysis_tasks = []
         for file_path, file_content in files.items():
-            # Simple keyword-based pre-filtering to reduce API calls
             if any(keyword.lower() in file_path.lower() or 
                    keyword.lower() in file_content.lower()[:1000] 
                    for keyword in keywords):
                 task = analyze_file_relevance(file_path, file_content, feature_description)
                 analysis_tasks.append(task)
         
-        # Run analyses concurrently (with a reasonable limit)
-        chunk_size = 5  # Process files in chunks to avoid overwhelming the API
+        chunk_size = 5  
         all_relevant_files = []
         
         for i in range(0, len(analysis_tasks), chunk_size):
             chunk = analysis_tasks[i:i+chunk_size]
             chunk_results = await asyncio.gather(*chunk, return_exceptions=True)
             
-            # Filter out None results and exceptions
             for result in chunk_results:
                 if isinstance(result, Exception):
                     logger.error(f"Analysis failed: {result}")
@@ -352,17 +440,14 @@ async def analyze_repository(repo_content: str, repo_url: str, feature_descripti
                 if result is not None:
                     all_relevant_files.append(result)
         
-        # Sort by importance
         all_relevant_files.sort(key=lambda x: x.importance, reverse=True)
         
-        # Generate implementation plan
         plan = await generate_implementation_plan(
             repo_name=repo_name,
             feature_description=feature_description,
             relevant_files=all_relevant_files
         )
-        
-        # Create and return the response
+
         return RepoAnalysisResponse(
             repository_name=repo_name,
             feature_summary=plan["feature_summary"],
