@@ -9,11 +9,12 @@ export default function Search() {
   const [url, setUrl] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [showSummary, setShowSummary] = useState<boolean>(false);
+  const [summaryContent, setSummaryContent] = useState<string>("");
   const [showNotification, setShowNotification] = useState<boolean>(false);
   const [notificationMessage, setNotificationMessage] = useState<string>("");
 
   // Handle form submission
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const trimmedUrl = url.trim();
     const trimmedQuery = query.trim();
 
@@ -31,7 +32,36 @@ export default function Search() {
       return;
     }
 
-    setShowSummary(true);
+    try {
+      const response_post = await fetch('localhost:8000/api/pack', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({repo_url: url})
+      });
+      if (!response_post.ok) {
+        throw new Error('POST request failed');
+      }
+      const data_post = await response_post.json();
+      console.log('POST request successful:', data_post);
+      
+      const response = await fetch("localhost:8000/api/SOMETHING/");
+    
+      if (!response.ok) {
+        console.error(response.status)
+        setNotificationMessage("Failed to receive data.");
+        setShowNotification(true);
+        return;
+      }
+
+      const data = await response.json();
+
+      setShowNotification(false);
+      setSummaryContent("SOME COOL DATA");
+      setShowSummary(true);
+    } catch (error) {
+      setNotificationMessage("Failed to connect to the server.");
+      setShowNotification(true);
+    }
   }, [url, query]);
 
   // Reset form
@@ -56,7 +86,7 @@ export default function Search() {
       )}
 
       {/* Summary Window */}
-      {showSummary && <SummaryWindow onReset={resetForm} />}
+      {showSummary && <SummaryWindow onReset={resetForm} content={summaryContent} />}
 
       {/* Notification */}
       {showNotification && (
