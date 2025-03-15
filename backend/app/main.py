@@ -12,7 +12,7 @@ from .pack import PackRequest, PackResponse, normalize_github_url, check_repo_ac
 import concurrent.futures
 from json import JSONDecodeError
 
-from .models import RepoAnalysisRequest, RepoAnalysisResponse
+from .models import RepoAnalysisRequest, RepoAnalysisResponse, ProcessRequest
 from .services.health_service import get_health_status
 from .services.ai_service import analyze_repository
 
@@ -145,6 +145,52 @@ async def analyze_repo(request: RepoAnalysisRequest):
                 "details": error_details
             }
         )
+    
+@app.post("/api/process", response_model=RepoAnalysisResponse)
+async def process_request(request: ProcessRequest):
+    """
+    Enhanced Pack Request endpoint that first calls /api/pack and then /analyze.
+    
+    - **repo_url**: GitHub repository URL
+    - **feature_description**: Description of the feature to implement
+    """
+    # Step 1: Call the /api/pack endpoint
+    pack_request = PackRequest(
+        repo_url=request.repo_url
+    )
+
+    try:
+        pack_response = await pack_repository(pack_request)
+        repo_content = pack_response.content  # Get the content from the pack response
+
+        # Step 2: Call the /analyze endpoint
+        analyze_request = RepoAnalysisRequest(
+            repo_url=request.repo_url,
+            feature_description=request.feature_description,
+            repo_content=repo_content
+        )
+
+        analysis_response = await analyze_repo(analyze_request)
+        return analysis_response
+
+    except HTTPException as e:
+        # Re-raise HTTP exceptions to return appropriate error responses
+        raise e
+    except Exception as e:
+        error_details = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        }
+        print("Error in epr_request:", error_details, file=sys.stderr)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "An unexpected error occurred during the EPR request",
+                "details": error_details
+            }
+        )
+
 
 if __name__ == "__main__":
     import uvicorn

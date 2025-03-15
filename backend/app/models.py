@@ -1,6 +1,10 @@
 from pydantic import BaseModel, HttpUrl
 from typing import List, Optional, Dict
 
+class ProcessRequest(BaseModel):
+    repo_url: str
+    feature_description: str
+
 class RepoAnalysisRequest(BaseModel):
     repo_content: str
     repo_url: str
