@@ -33,18 +33,11 @@ export default function Search() {
     }
 
     try {
-      const response_post = await fetch('localhost:8000/api/pack', {
+      const response = await fetch('localhost:8000/api/process', {
         method: 'POST',
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({repo_url: url})
+        body: JSON.stringify({repo_url: url, feature_description: query})
       });
-      if (!response_post.ok) {
-        throw new Error('POST request failed');
-      }
-      const data_post = await response_post.json();
-      console.log('POST request successful:', data_post);
-      
-      const response = await fetch("localhost:8000/api/SOMETHING/");
     
       if (!response.ok) {
         console.error(response.status)
@@ -56,7 +49,7 @@ export default function Search() {
       const data = await response.json();
 
       setShowNotification(false);
-      setSummaryContent("SOME COOL DATA");
+      setSummaryContent(data);
       setShowSummary(true);
     } catch (error) {
       setNotificationMessage("Failed to connect to the server.");

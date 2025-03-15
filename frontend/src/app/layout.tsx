@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenSourceGPS",
+  title: "GitMentor",
   description: "Get started with contributing to GitHub repositories effortlessly.",
 };
 

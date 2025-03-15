@@ -30,7 +30,7 @@ export default function Home() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="text-5xl font-bold text-blue-400 mb-4"
       >
-        OpenSourceGPS
+        GitMentor
       </motion.h1>
       <motion.p
         initial={{ opacity: 0 }}
