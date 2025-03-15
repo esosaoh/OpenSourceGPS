@@ -10,6 +10,11 @@ import sys
 from gitingest import ingest
 from .pack import PackRequest, PackResponse, normalize_github_url, check_repo_access, parse_content, get_largest_files
 import concurrent.futures
+from json import JSONDecodeError
+
+from .models import RepoAnalysisRequest, RepoAnalysisResponse
+from .services.health_service import get_health_status
+from .services.ai_service import analyze_repository
 
 app = FastAPI(title="Hackathon Project")
 
@@ -87,7 +92,59 @@ async def pack_repository(request: PackRequest):
         }
         print("Error in pack_repository:", error_details, file=sys.stderr)
         raise HTTPException(status_code=500, detail=error_details)
+    
 
+@app.get("/health")
+async def health_check():
+    """Detailed health check endpoint."""
+    return await get_health_status()
+
+@app.post("/analyze", response_model=RepoAnalysisResponse)
+async def analyze_repo(request: RepoAnalysisRequest):
+    """
+    Analyze a GitHub repository and generate implementation steps for a specific feature.
+    
+    - **repo_url**: GitHub repository URL
+    - **feature_description**: Description of the feature to implement
+    """
+    try:
+        # Ensure the request contains valid data
+        if not request.repo_url or not request.feature_description:
+            raise HTTPException(status_code=400, detail="repo_url and feature_description are required.")
+
+        # Call the analyze_repository function
+        result = await analyze_repository(request.repo_content, request.repo_url, request.feature_description)
+
+        # Ensure the result is not None and matches the expected response model
+        if result is None:
+            raise HTTPException(status_code=500, detail="Analysis returned no result.")
+
+        return result
+
+    except JSONDecodeError as e:
+        # Handle JSON decoding errors specifically
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Invalid JSON format.",
+                "details": str(e)
+            }
+        )
+    except Exception as e:
+        # General exception handling
+        error_details = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        }
+        print("Error in analyze_repo:", error_details, file=sys.stderr)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "An unexpected error occurred",
+                "details": error_details
+            }
+        )
 
 if __name__ == "__main__":
     import uvicorn
