@@ -44,7 +44,7 @@ def extract_feature_keywords(feature_description: str) -> List[str]:
     prompt = f"""
     You are a code expert helping to identify relevant files for implementing a feature.
     
-    Extract 10-20 key technical keywords or code identifiers from this feature description.
+    Extract 5-7 key technical keywords or code identifiers from this feature description.
     These will be used to search for relevant files in a codebase.
     Focus on component names, functions, UI elements, variable names, and technical concepts.
     
