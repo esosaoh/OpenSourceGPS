@@ -51,3 +51,4 @@ urllib3==2.3.0
 wrapt==1.17.2
 pinecone-client==3.0.0
 retry
+requests
