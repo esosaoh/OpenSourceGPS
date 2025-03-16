@@ -8,9 +8,10 @@ interface InputFormProps {
   query: string;
   setQuery: (query: string) => void;
   onSubmit: () => void;
+  loading: boolean; // Add loading prop
 }
 
-export default function InputForm({ url, setUrl, query, setQuery, onSubmit }: InputFormProps) {
+export default function InputForm({ url, setUrl, query, setQuery, onSubmit, loading }: InputFormProps) {
   // Handle form submission
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault(); // Prevent page reload
@@ -44,16 +45,43 @@ export default function InputForm({ url, setUrl, query, setQuery, onSubmit }: In
           value={query}
           onChange={setQuery}
           placeholder="How can I...?"
-          isTextArea 
-          rows={8} 
+          isTextArea
+          rows={8}
         />
 
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 hover:cursor-pointer hover:bg-sky-700"
+          disabled={loading} // Disable button while loading
+          className={`w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          Answer
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <svg
+                className="animate-spin h-5 w-5 mr-3 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Processing...
+            </div>
+          ) : (
+            "Answer"
+          )}
         </button>
       </form>
     </motion.div>
