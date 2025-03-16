@@ -1,4 +1,6 @@
 <div align="center">
+
+<img src="frontend/public/branch.svg" alt="GitMentor Logo" width="80" height="80"/>
  
 <h3 align="center">GitMentor</h3>
 
