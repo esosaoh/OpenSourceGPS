@@ -34,7 +34,7 @@ export default function Search() {
     }
 
     try {
-      const response = await fetch("https://api.gitmentor.co", {
+      const response = await fetch("https://api.gitmentor.co/api/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo_url: trimmedUrl, feature_description: trimmedQuery }),
