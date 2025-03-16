@@ -19,7 +19,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 def get_gemini_model():
     """Get the Gemini Pro model for text generation."""
-    return genai.GenerativeModel('gemini-2.0-flash-thinking-exp-01-21')
+    return genai.GenerativeModel('gemini-2.0-flash-lite')
 
 
 def clean_json_string(json_text: str) -> str:

@@ -9,7 +9,7 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 class PackRequest(BaseModel):
     repo_url: str
     max_file_size: Optional[int] = 10485760  # Default 10MB
-    max_tokens: Optional[int] = 1000000  # Default 1m tokens
+    max_tokens: Optional[int] = 1700000  # Default 1m tokens
     exclude_patterns: Optional[List[str]] = []
 
 class PackResponse(BaseModel):
