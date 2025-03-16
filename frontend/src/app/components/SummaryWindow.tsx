@@ -35,7 +35,7 @@ export default function SummaryWindow({ onReset, content }: SummaryWindowProps) 
             ol: ({...props}) => <ol className="list-decimal list-inside text-gray-400 mb-4" {...props} />,
             li: ({...props}) => <li className="mb-1" {...props} />,
             a: ({...props}) => <a className="text-blue-400 hover:underline" {...props} />,
-            code: ({ node, inline, className, children, ...props }) => {
+            code: ({ inline, className, children, ...props }) => {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
                 <pre className="bg-gray-700 p-3 rounded text-sm overflow-auto">
