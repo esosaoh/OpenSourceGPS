@@ -34,14 +34,11 @@ export default function Search() {
     }
 
     try {
-      const response = await fetch(
-        "http://ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ repo_url: url, feature_description: query }),
-        }
-      );
+      const response = await fetch("https://e35d-208-98-222-98.ngrok-free.app/api/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repo_url: trimmedUrl, feature_description: trimmedQuery }),
+      });
 
       if (!response.ok) {
         console.error(response.status);
@@ -97,7 +94,8 @@ export default function Search() {
       setShowNotification(false);
       setSummaryContent(final);
       setShowSummary(true);
-    } catch {
+    } catch (error) {
+      console.error("Error:", error);
       setNotificationMessage("Failed to connect to the server.");
       setShowNotification(true);
     }
