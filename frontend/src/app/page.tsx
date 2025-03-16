@@ -38,7 +38,7 @@ export default function Home() {
         transition={{ duration: 0.5, delay: 0.4 }}
         className="text-lg text-blue-400/80 mb-8 text-center max-w-lg"
       >
-        Get started with contributing to GitHub repositories effortlessly.
+        Get started with contributing to open source effortlessly.
       </motion.p>
       <motion.button
         initial={{ opacity: 0 }}
