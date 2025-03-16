@@ -1,4 +1,5 @@
-import { motion, FormEvent } from "framer-motion";
+import { motion } from "framer-motion";
+import { FormEvent } from "react";
 import InputField from "./InputField";
 
 interface InputFormProps {
