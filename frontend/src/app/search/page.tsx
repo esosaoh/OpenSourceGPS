@@ -93,7 +93,7 @@ export default function Search() {
       setShowNotification(false);
       setSummaryContent(final);
       setShowSummary(true);
-    } catch (error) {
+    } catch {
       setNotificationMessage("Failed to connect to the server.");
       setShowNotification(true);
     }
