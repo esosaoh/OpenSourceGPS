@@ -145,6 +145,10 @@ async def analyze_repo(request: RepoAnalysisRequest):
             }
         )
     
+@app.options("/api/process")
+async def options_process():
+    return {"message": "Preflight request accepted"}
+
 @app.post("/api/process", response_model=RepoAnalysisResponse)
 async def process_request(request: ProcessRequest):
     """
