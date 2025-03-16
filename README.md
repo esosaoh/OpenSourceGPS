@@ -3,7 +3,7 @@
 <h3 align="center">GitMentor</h3>
 
   <p align="center">
-    Effortlessly contribute to GitHub repositories with AI-powered guidance.
+    Effortlessly contribute to open-source projects with AI-powered guidance.
     <br />
      <a href="https://github.com/esosaoh/gitmentor">github.com/esosaoh/gitmentor</a>
   </p>
