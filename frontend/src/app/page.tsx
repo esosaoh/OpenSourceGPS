@@ -40,7 +40,7 @@ export default function Home() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="text-lg text-blue-400/80 mb-8 text-center max-w-lg"
       >
-        Get started with contributing to open source effortlessly.
+        Effortlessly contribute to open source repositories with AI-driven guidance.
       </motion.p>
       <motion.button
         initial={{ opacity: 0 }}
