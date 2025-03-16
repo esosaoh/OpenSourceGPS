@@ -20,7 +20,7 @@ app = FastAPI(title="gitmentor")
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://gitmentor.co", "https://9f5d-208-98-222-98.ngrok-free.app", "*"],
+    allow_origins=["*"],  # For testing, allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -34,7 +34,7 @@ export default function Search() {
     }
 
     try {
-      const response = await fetch("https://ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process", {
+      const response = await fetch("https://e35d-208-98-222-98.ngrok-free.app/api/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo_url: trimmedUrl, feature_description: trimmedQuery }),
