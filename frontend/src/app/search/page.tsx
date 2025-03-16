@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import InputForm from "../components/InputForm";
 import SummaryWindow from "../components/SummaryWindow";
 import Notification from "../components/Notification";
+import Banner from "../components/Banner";
 
 export default function Search() {
   const [url, setUrl] = useState<string>("");
@@ -17,13 +18,13 @@ export default function Search() {
   const handleSubmit = useCallback(async () => {
     const trimmedUrl = url.trim();
     const trimmedQuery = query.trim();
-  
+
     if (!trimmedUrl || !trimmedQuery) {
       setNotificationMessage("Please fill in both the URL and query fields.");
       setShowNotification(true);
       return;
     }
-  
+
     try {
       new URL(trimmedUrl);
     } catch {
@@ -31,27 +32,30 @@ export default function Search() {
       setShowNotification(true);
       return;
     }
-  
+
     try {
-      const response = await fetch('http://ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process', {
-        method: 'POST',
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({repo_url: url, feature_description: query})
-      });
-      
+      const response = await fetch(
+        "http://ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repo_url: url, feature_description: query }),
+        }
+      );
+
       if (!response.ok) {
-        console.error(response.status)
+        console.error(response.status);
         setNotificationMessage("Failed to receive data.");
         setShowNotification(true);
         return;
       }
-  
+
       const data = await response.json();
-  
+
       let final = `# ${data.repository_name}\n\n`;
-  
+
       final += `## Feature Summary\n${data.feature_summary}\n\n`;
-  
+
       final += "## Implementation Steps\n";
       for (const step of data.implementation_steps) {
         final += `${step.step_number}. ${step.description}\n`;
@@ -63,7 +67,7 @@ export default function Search() {
         }
         final += "\n";
       }
-  
+
       final += "## Setup Instructions\n";
       for (const instruction of data.setup_instructions) {
         final += `${instruction.step_number}. ${instruction.description}\n`;
@@ -72,13 +76,13 @@ export default function Search() {
         }
         final += "\n";
       }
-  
+
       final += "## Potential Challenges\n";
       for (const challenge of data.potential_challenges) {
         final += `- ${challenge}\n`;
       }
       final += "\n";
-  
+
       final += "## Relevant Files\n";
       for (const file of data.relevant_files) {
         final += `- **Path:** \`${file.path}\`\n`;
@@ -89,7 +93,7 @@ export default function Search() {
         }
         final += "\n";
       }
-      
+
       setShowNotification(false);
       setSummaryContent(final);
       setShowSummary(true);
@@ -109,6 +113,9 @@ export default function Search() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col items-center justify-center p-4">
+      {/* Banner */}
+      <Banner />
+
       {/* Input Form */}
       {!showSummary && (
         <InputForm
