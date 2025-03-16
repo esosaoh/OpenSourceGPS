@@ -33,7 +33,7 @@ export default function Search() {
     }
   
     try {
-      const response = await fetch('http://ec2-18-119-119-145.us-east-2.compute.amazonaws.com:8000/api/process', {
+      const response = await fetch('http://ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process', {
         method: 'POST',
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({repo_url: url, feature_description: query})
