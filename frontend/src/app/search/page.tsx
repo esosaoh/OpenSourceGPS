@@ -34,7 +34,7 @@ export default function Search() {
     }
 
     try {
-      const response = await fetch("https://e35d-208-98-222-98.ngrok-free.app/api/process", {
+      const response = await fetch("https://api.gitmentor.co", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo_url: trimmedUrl, feature_description: trimmedQuery }),
