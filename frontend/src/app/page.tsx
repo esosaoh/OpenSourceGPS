@@ -14,7 +14,7 @@ export default function Home() {
   if (!isMounted) return null;
 
   const redirectToGitHub = () => {
-    window.location.href = "https://github.com/esosaoh/opensourcegps";
+    window.location.href = "https://github.com/esosaoh/gitmentor";
   };
 
   const redirectToSearchPage = () => {
