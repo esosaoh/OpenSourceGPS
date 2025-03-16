@@ -1,6 +1,5 @@
 <div align="center">
  
-
 <h3 align="center">GitMentor</h3>
 
   <p align="center">
@@ -46,8 +45,6 @@ GitMentor is a tool designed to help developers easily contribute to GitHub repo
 - **Health Check Endpoint:** Provides a health check endpoint to monitor the status of the application and its dependencies.
 
 ## Architecture
-
-![Architecture Diagram](https://github.com/user-attachments/assets/75adc7aa-7719-4c4f-a9bb-3ba847e12e9f)
 
 The project follows a microservices architecture with a clear separation between the frontend and backend.
 
