@@ -17,13 +17,13 @@ export default function Search() {
   const handleSubmit = useCallback(async () => {
     const trimmedUrl = url.trim();
     const trimmedQuery = query.trim();
-
+  
     if (!trimmedUrl || !trimmedQuery) {
       setNotificationMessage("Please fill in both the URL and query fields.");
       setShowNotification(true);
       return;
     }
-
+  
     try {
       new URL(trimmedUrl);
     } catch {
@@ -31,7 +31,7 @@ export default function Search() {
       setShowNotification(true);
       return;
     }
-
+  
     try {
       const response = await fetch('http://localhost:8000/api/process', {
         method: 'POST',
@@ -45,11 +45,53 @@ export default function Search() {
         setShowNotification(true);
         return;
       }
-
+  
       const data = await response.json();
-
+  
+      let final = `# ${data.repository_name}\n\n`;
+  
+      final += `## Feature Summary\n${data.feature_summary}\n\n`;
+  
+      final += "## Implementation Steps\n";
+      for (const step of data.implementation_steps) {
+        final += `${step.step_number}. ${step.description}\n`;
+        if (step.code_snippet) {
+          final += "```" + "ts\n" + step.code_snippet + "\n```\n";
+        }
+        if (step.file_path) {
+          final += `File: \`${step.file_path}\`\n`;
+        }
+        final += "\n";
+      }
+  
+      final += "## Setup Instructions\n";
+      for (const instruction of data.setup_instructions) {
+        final += `${instruction.step_number}. ${instruction.description}\n`;
+        if (instruction.code) {
+          final += "```" + "sh\n" + instruction.code + "\n```\n";
+        }
+        final += "\n";
+      }
+  
+      final += "## Potential Challenges\n";
+      for (const challenge of data.potential_challenges) {
+        final += `- ${challenge}\n`;
+      }
+      final += "\n";
+  
+      final += "## Relevant Files\n";
+      for (const file of data.relevant_files) {
+        final += `- **Path:** \`${file.path}\`\n`;
+        final += `  - **Importance:** ${file.importance}\n`;
+        final += `  - **Reason:** ${file.reason}\n`;
+        if (file.content_preview) {
+          final += `  - **Content Preview:**\n\n\`\`\`\n${file.content_preview}\n\`\`\`\n`;
+        }
+        final += "\n";
+      }
+      
       setShowNotification(false);
-      setSummaryContent(data);
+      setSummaryContent(final);
       setShowSummary(true);
     } catch (error) {
       setNotificationMessage("Failed to connect to the server.");
