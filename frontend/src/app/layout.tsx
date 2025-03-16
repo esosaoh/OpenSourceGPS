@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
 export const metadata: Metadata = {
-  title: "GitMentor",
-  description: "Get started with contributing to GitHub repositories effortlessly.",
+  title: "GitMentor - AI-Powered Open-Source Contributions",
+  description: "Effortlessly contribute to GitHub repositories with AI-driven guidance. GitMentor helps you understand codebases, generate implementation plans, and make meaningful contributions faster.",
 };
 
 export default function RootLayout({
@@ -19,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${GeistSans.className} font-sans antialiased`}>
         {children}
       </body>
     </html>
