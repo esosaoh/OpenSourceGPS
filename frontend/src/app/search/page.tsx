@@ -13,15 +13,18 @@ export default function Search() {
   const [summaryContent, setSummaryContent] = useState<string>("");
   const [showNotification, setShowNotification] = useState<boolean>(false);
   const [notificationMessage, setNotificationMessage] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false); // Add loading state
 
   // Handle form submission
   const handleSubmit = useCallback(async () => {
+    setLoading(true); // Start loading
     const trimmedUrl = url.trim();
     const trimmedQuery = query.trim();
 
     if (!trimmedUrl || !trimmedQuery) {
       setNotificationMessage("Please fill in both the URL and query fields.");
       setShowNotification(true);
+      setLoading(false); // Stop loading
       return;
     }
 
@@ -30,6 +33,7 @@ export default function Search() {
     } catch {
       setNotificationMessage("Please enter a valid URL.");
       setShowNotification(true);
+      setLoading(false); // Stop loading
       return;
     }
 
@@ -44,6 +48,7 @@ export default function Search() {
         console.error(response.status);
         setNotificationMessage("Failed to receive data.");
         setShowNotification(true);
+        setLoading(false); // Stop loading
         return;
       }
 
@@ -98,6 +103,8 @@ export default function Search() {
       console.error("Error:", error);
       setNotificationMessage("Failed to connect to the server.");
       setShowNotification(true);
+    } finally {
+      setLoading(false); // Stop loading (whether success or error)
     }
   }, [url, query]);
 
@@ -122,6 +129,7 @@ export default function Search() {
           query={query}
           setQuery={setQuery}
           onSubmit={handleSubmit}
+          loading={loading} // Pass loading state to InputForm
         />
       )}
 
