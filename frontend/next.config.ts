@@ -1,7 +1,14 @@
-import type { NextConfig } from "next";
+import { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://9f5d-208-98-222-98.ngrok-free.app/api/:path*',
+      },
+    ]
+  },
+}
 
-export default nextConfig;
+export default nextConfig
