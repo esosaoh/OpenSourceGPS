@@ -15,12 +15,12 @@ from .models import RepoAnalysisRequest, RepoAnalysisResponse, ProcessRequest
 from .services.health_service import get_health_status
 from .services.ai_service import analyze_repository
 
-app = FastAPI(title="Hackathon Project")
+app = FastAPI(title="gitmentor")
 
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["https://gitmentor.co"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
