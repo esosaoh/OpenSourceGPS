@@ -8,6 +8,13 @@ interface SummaryWindowProps {
   content: string;
 }
 
+// Define the type for the `code` component's props
+interface CodeProps extends React.HTMLAttributes<HTMLElement> {
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
+
 export default function SummaryWindow({ onReset, content }: SummaryWindowProps) {
   return (
     <motion.div
@@ -28,14 +35,14 @@ export default function SummaryWindow({ onReset, content }: SummaryWindowProps) 
         <ReactMarkdown 
           remarkPlugins={[remarkGfm]}
           components={{
-            p: ({...props}) => <p className="text-gray-400 leading-relaxed mb-4" {...props} />,
-            h1: ({...props}) => <h1 className="text-xl font-bold text-white mb-3" {...props} />,
-            h2: ({...props}) => <h2 className="text-lg font-semibold text-white mb-2" {...props} />,
-            ul: ({...props}) => <ul className="list-disc list-inside text-gray-400 mb-4" {...props} />,
-            ol: ({...props}) => <ol className="list-decimal list-inside text-gray-400 mb-4" {...props} />,
-            li: ({...props}) => <li className="mb-1" {...props} />,
-            a: ({...props}) => <a className="text-blue-400 hover:underline" {...props} />,
-            code: ({ inline, className, children, ...props }) => {
+            p: ({ ...props }) => <p className="text-gray-400 leading-relaxed mb-4" {...props} />,
+            h1: ({ ...props }) => <h1 className="text-xl font-bold text-white mb-3" {...props} />,
+            h2: ({ ...props }) => <h2 className="text-lg font-semibold text-white mb-2" {...props} />,
+            ul: ({ ...props }) => <ul className="list-disc list-inside text-gray-400 mb-4" {...props} />,
+            ol: ({ ...props }) => <ol className="list-decimal list-inside text-gray-400 mb-4" {...props} />,
+            li: ({ ...props }) => <li className="mb-1" {...props} />,
+            a: ({ ...props }) => <a className="text-blue-400 hover:underline" {...props} />,
+            code: ({ inline, className, children, ...props }: CodeProps) => {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
                 <pre className="bg-gray-700 p-3 rounded text-sm overflow-auto">
