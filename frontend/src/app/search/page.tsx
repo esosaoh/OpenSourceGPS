@@ -35,7 +35,7 @@ export default function Search() {
 
     try {
       const response = await fetch(
-        "https://ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process",
+        "ec2-18-119-119-145.us-east-2.compute.amazonaws.com/api/process",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
